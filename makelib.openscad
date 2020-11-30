@@ -1,0 +1,55 @@
+ifeq ($(shell uname -s),Darwin)
+	OPENSCAD := /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD
+else ifeq ($(shell uname -s),Linux)
+	OPENSCAD := xvfb-run /usr/bin/openscad
+endif
+
+
+.PRECIOUS: cache/%.stl cache/%.png
+
+include $(shell find . -name '*.deps')
+
+
+openscad.clean :
+	find * -type f -name '*.stl' -exec rm -v {} \; ${INDENT}
+	find * -type f -name '*.png' -exec rm -v {} \; ${INDENT}
+	find * -name '*.deps' -exec rm -v {} \; ${INDENT}
+	([ -d artifacts ] && rmdir artifacts || true) ${INDENT}
+	([ -d cache ] && rmdir cache || true) ${INDENT}
+
+
+cache/%.stl cache/%.png: %.scad
+	[ -d cache ] || mkdir -v cache
+	date
+	time ${OPENSCAD} -d $@.deps -o $@ $<
+	date
+	@echo .
+	@echo .
+	@echo .
+
+
+
+artifacts/% : cache/%
+	@[ -d artifacts ] || mkdir -v artifacts
+	cp $< $@
+
+openscad.all : openscad.stl openscad.png
+
+openscad.stl :
+	@for s in *.scad ; do \
+		[ -r $$s ] && ${MAKE} --no-print-directory ${MAKEFLAGS} artifacts/$$(basename $$s .scad).stl ; \
+	done
+
+openscad.png :
+	@for s in *.scad ; do \
+		[ -r $$s ] && ${MAKE} --no-print-directory ${MAKEFLAGS} artifacts/$$(basename $$s .scad).png ; \
+	done
+
+openscad.readme :
+	@echo for gitlab_container_registry:
+	@echo docker login registry.gitlab.com ${INDENT}
+	@echo docker build -t registry.gitlab.com/michaeldallen/pegboard:2020.11 . ${INDENT}
+	@echo  docker push registry.gitlab.com/michaeldallen/pegboard:2020.11 ${INDENT}
+
+#EOF
+

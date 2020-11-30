@@ -1,0 +1,19 @@
+image: registry.gitlab.com/michaeldallen/docker/util:latest
+
+stages:
+  - test
+
+makefile builder :
+  stage: test
+  script:
+    - make _makefile
+    - cat -n Makefile.makelib
+    - make -f Makefile.makelib
+    - make -f Makefile.makelib test.test | tee test.out
+    - fgrep 'hello make' test.out
+    - make -f Makefile.makelib test.clean
+
+default targets :
+  stage: test
+  script:
+    - make

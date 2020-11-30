@@ -1,0 +1,29 @@
+docker.all :
+	@for d in Dockerfile.* ; do me=$$(echo $$d | sed 's/Dockerfile.//') ; echo ${MAKE} docker.push.$$me.latest ; done
+
+docker.all! :
+	@for d in Dockerfile.* ; do me=$$(echo $$d | sed 's/Dockerfile.//') ; echo ${MAKE} docker.push.$$me.dated ; done
+
+REGISTRY := registry.gitlab.com/michaeldallen/docker
+
+DOCKERSOCK := -v /var/run/docker.sock:/var/run/docker.sock
+
+docker.build.% : Dockerfile.%
+	@target=$$(echo $@ | sed 's/^docker.build.//') ; \
+	echo docker build -f $< -t ${REGISTRY}/$${target}:latest .
+
+docker.build.%.dated : Dockerfile.%
+	@target=$$(echo $@ | sed 's/^docker.build.\(.*\).dated/\1/') ; \
+	echo docker build -f $< -t ${REGISTRY}/$${target}:$$(date +%Y%m%d) .
+
+
+docker.push.%.latest : docker.build.%
+	@target=$$(echo $@ | sed 's/^docker.push.\(.*\).latest/\1/') ; \
+	echo docker push ${REGISTRY}/$${target}:latest
+
+docker.push.%.dated : docker.build.%.dated
+	@target=$$(echo $@ | sed 's/^docker.push.\(.*\).dated/\1/') ; \
+	echo docker push ${REGISTRY}/$${target}:$$(date +%Y%m%d)
+
+#EOF
+
