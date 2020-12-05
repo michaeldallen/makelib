@@ -21,7 +21,7 @@ openscad.clean :
 cache/%.stl cache/%.png: %.scad
 	[ -d cache ] || mkdir -v cache
 	date
-	time ${OPENSCAD} -m make -d $@.deps -o $@ $<
+	time ${OPENSCAD} -d $@.deps -o $@ $<
 	date
 	@echo .
 	@echo .
