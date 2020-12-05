@@ -31,7 +31,8 @@ cache/%.stl cache/%.png: %.scad
 
 artifacts/% : cache/%
 	@[ -d artifacts ] || mkdir -v artifacts
-	cp $< $@
+	@cp $< $@
+	@echo "... cp $< --> $@"
 
 openscad.all : openscad.stl 
 
